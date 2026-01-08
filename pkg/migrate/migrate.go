@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/lucasefe/dbkit/pkg/executor"
+	"github.com/tmwinc/seedup/pkg/executor"
 )
 
 // MigrationStatus represents the status of a single migration

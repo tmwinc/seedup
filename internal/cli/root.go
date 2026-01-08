@@ -15,9 +15,9 @@ var (
 
 func NewRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:   "dbkit",
+		Use:   "seedup",
 		Short: "Database migration and seed management tool",
-		Long: `dbkit is a CLI tool for managing database migrations and seed data.
+		Long: `seedup is a CLI tool for managing database migrations and seed data.
 It wraps goose for migrations and provides utilities for creating and applying seed data.
 
 Configuration is done via environment variables or CLI flags:

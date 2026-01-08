@@ -1,11 +1,11 @@
-# dbkit
+# seedup
 
 A CLI tool for managing PostgreSQL database migrations and seed data. Wraps [goose](https://github.com/pressly/goose) for migrations and provides utilities for creating and applying seed data.
 
 ## Installation
 
 ```bash
-go install github.com/lucasefe/dbkit/cmd/dbkit@latest
+go install github.com/tmwinc/seedup/cmd/seedup@latest
 ```
 
 ## Requirements
@@ -23,16 +23,16 @@ The following tools must be installed and available in your PATH:
 export DATABASE_URL="postgres://user:pass@localhost/mydb"
 
 # Create your first migration
-dbkit migrate create create_users_table
+seedup migrate create create_users_table
 
 # Edit the migration file, then run it
-dbkit migrate up
+seedup migrate up
 
 # Check migration status
-dbkit migrate status
+seedup migrate status
 ```
 
-## Integrating dbkit into Your Project
+## Integrating seedup into Your Project
 
 ### 1. Project Structure
 
@@ -46,13 +46,13 @@ your-project/
 │   ├── public.users.csv
 │   └── public.accounts.csv
 ├── seed.sql              # SQL to select seed data from production
-├── Makefile              # Optional: wrap dbkit commands
+├── Makefile              # Optional: wrap seedup commands
 └── ...
 ```
 
 ### 2. Environment Variables
 
-Configure dbkit using environment variables (12-factor style):
+Configure seedup using environment variables (12-factor style):
 
 ```bash
 # Required
@@ -73,32 +73,32 @@ Add these targets to your `Makefile`:
 .PHONY: migrate migrate-down migrate-status migrate-create
 
 migrate:
-	dbkit migrate up
+	seedup migrate up
 
 migrate-down:
-	dbkit migrate down
+	seedup migrate down
 
 migrate-status:
-	dbkit migrate status
+	seedup migrate status
 
 migrate-create:
 	@read -p "Migration name: " name; \
-	dbkit migrate create $$name
+	seedup migrate create $$name
 
 # Seed data
 .PHONY: seed seed-create
 
 seed:
-	dbkit seed apply
+	seedup seed apply
 
 seed-create:
-	dbkit seed create -d "$$PROD_DATABASE_URL"
+	seedup seed create -d "$$PROD_DATABASE_URL"
 
 # CI checks
 .PHONY: check-migrations
 
 check-migrations:
-	dbkit check --base-branch main
+	seedup check --base-branch main
 ```
 
 ### 4. CI/CD Integration
@@ -119,11 +119,11 @@ jobs:
         with:
           go-version: '1.22'
 
-      - name: Install dbkit
-        run: go install github.com/lucasefe/dbkit/cmd/dbkit@latest
+      - name: Install seedup
+        run: go install github.com/tmwinc/seedup/cmd/seedup@latest
 
       - name: Check migration timestamps
-        run: dbkit check --base-branch ${{ github.base_ref || 'main' }}
+        run: seedup check --base-branch ${{ github.base_ref || 'main' }}
 ```
 
 ## Commands
@@ -134,19 +134,19 @@ Run database migrations using goose.
 
 ```bash
 # Run all pending migrations
-dbkit migrate up
+seedup migrate up
 
 # Run a single migration
-dbkit migrate up-by-one
+seedup migrate up-by-one
 
 # Rollback the last migration
-dbkit migrate down
+seedup migrate down
 
 # Show migration status
-dbkit migrate status
+seedup migrate status
 
 # Create a new migration file
-dbkit migrate create add_users_table
+seedup migrate create add_users_table
 # Creates: migrations/20240101120000_add_users_table.sql
 ```
 
@@ -155,7 +155,7 @@ dbkit migrate create add_users_table
 Apply seed data to your local database. This is useful for setting up development environments.
 
 ```bash
-dbkit seed apply
+seedup seed apply
 ```
 
 The apply process:
@@ -169,10 +169,10 @@ Create seed data from a database (typically production). This dumps schema and d
 
 ```bash
 # Create seed from production
-dbkit seed create -d "$PROD_DATABASE_URL"
+seedup seed create -d "$PROD_DATABASE_URL"
 
 # Dry run (preview without modifying files)
-dbkit seed create -d "$PROD_DATABASE_URL" --dry-run
+seedup seed create -d "$PROD_DATABASE_URL" --dry-run
 ```
 
 The create process:
@@ -184,7 +184,7 @@ The create process:
 Consolidate all migrations into a single initial migration. Useful for cleaning up migration history.
 
 ```bash
-dbkit flatten -d "$PROD_DATABASE_URL"
+seedup flatten -d "$PROD_DATABASE_URL"
 ```
 
 ### check
@@ -192,10 +192,10 @@ dbkit flatten -d "$PROD_DATABASE_URL"
 Validate that new migrations have the latest timestamps. This prevents merge conflicts when multiple developers add migrations.
 
 ```bash
-dbkit check --base-branch main
+seedup check --base-branch main
 ```
 
-If validation fails, dbkit provides fix commands:
+If validation fails, seedup provides fix commands:
 
 ```
 Error: New migrations must have the latest timestamps
@@ -291,7 +291,7 @@ createdb myproject_dev
 export DATABASE_URL="postgres://localhost/myproject_dev"
 
 # Apply seed data (runs migrations + loads seed data)
-dbkit seed apply
+seedup seed apply
 
 # Your database is now ready for development!
 ```
@@ -303,7 +303,7 @@ dbkit seed apply
 export PROD_DATABASE_URL="postgres://readonly:pass@prod-host/myproject"
 
 # Create seed from production
-dbkit seed create -d "$PROD_DATABASE_URL"
+seedup seed create -d "$PROD_DATABASE_URL"
 
 # Review and commit the changes
 git add migrations/ seed/
@@ -314,13 +314,13 @@ git commit -m "Update seed data"
 
 ```bash
 # Create migration
-dbkit migrate create add_orders_table
+seedup migrate create add_orders_table
 
 # Edit the file
 vim migrations/20240101120000_add_orders_table.sql
 
 # Run it
-dbkit migrate up
+seedup migrate up
 
 # Commit
 git add migrations/

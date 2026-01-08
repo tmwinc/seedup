@@ -1,6 +1,6 @@
 # Binaries
 bin/
-dbkit
+seedup
 *.exe
 
 # Test artifacts

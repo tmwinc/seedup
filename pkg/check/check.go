@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/lucasefe/dbkit/pkg/executor"
+	"github.com/tmwinc/seedup/pkg/executor"
 )
 
 // Checker validates migration file timestamps

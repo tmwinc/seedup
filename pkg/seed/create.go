@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/lucasefe/dbkit/pkg/migrate"
+	"github.com/tmwinc/seedup/pkg/migrate"
 )
 
 // CreateOptions configures the seed creation process

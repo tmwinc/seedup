@@ -1,4 +1,4 @@
-module github.com/lucasefe/dbkit
+module github.com/tmwinc/seedup
 
 go 1.25.4
 

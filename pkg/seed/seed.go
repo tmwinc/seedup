@@ -1,8 +1,8 @@
 package seed
 
 import (
-	"github.com/lucasefe/dbkit/pkg/executor"
-	"github.com/lucasefe/dbkit/pkg/migrate"
+	"github.com/tmwinc/seedup/pkg/executor"
+	"github.com/tmwinc/seedup/pkg/migrate"
 )
 
 // Seeder handles seed data operations

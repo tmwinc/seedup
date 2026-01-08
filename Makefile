@@ -2,7 +2,7 @@
 
 # Build the binary
 build:
-	go build -o bin/dbkit ./cmd/dbkit
+	go build -o bin/seedup ./cmd/seedup
 
 # Run tests
 test:
@@ -19,7 +19,7 @@ clean:
 
 # Install the binary
 install:
-	go install ./cmd/dbkit
+	go install ./cmd/seedup
 
 # Format code
 fmt:
@@ -31,6 +31,6 @@ check: lint test
 
 # Build for all platforms
 build-all:
-	GOOS=linux GOARCH=amd64 go build -o bin/dbkit-linux-amd64 ./cmd/dbkit
-	GOOS=darwin GOARCH=amd64 go build -o bin/dbkit-darwin-amd64 ./cmd/dbkit
-	GOOS=darwin GOARCH=arm64 go build -o bin/dbkit-darwin-arm64 ./cmd/dbkit
+	GOOS=linux GOARCH=amd64 go build -o bin/seedup-linux-amd64 ./cmd/seedup
+	GOOS=darwin GOARCH=amd64 go build -o bin/seedup-darwin-amd64 ./cmd/seedup
+	GOOS=darwin GOARCH=arm64 go build -o bin/seedup-darwin-arm64 ./cmd/seedup

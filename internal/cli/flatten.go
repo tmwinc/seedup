@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/lucasefe/dbkit/pkg/executor"
-	"github.com/lucasefe/dbkit/pkg/migrate"
+	"github.com/tmwinc/seedup/pkg/executor"
+	"github.com/tmwinc/seedup/pkg/migrate"
 	"github.com/spf13/cobra"
 )
 

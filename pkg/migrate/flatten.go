@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/lucasefe/dbkit/pkg/executor"
+	"github.com/tmwinc/seedup/pkg/executor"
 )
 
 // Flattener consolidates migrations into a single initial migration
