@@ -1,0 +1,23 @@
+# Binaries
+bin/
+dbkit
+*.exe
+
+# Test artifacts
+coverage.out
+coverage.html
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
