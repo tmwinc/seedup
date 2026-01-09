@@ -12,8 +12,19 @@ go install github.com/tmwinc/seedup/cmd/seedup@latest
 
 The following tools must be installed and available in your PATH:
 
-- [goose](https://github.com/pressly/goose) - Database migrations (`go install github.com/pressly/goose/v3/cmd/goose@latest`)
-- `psql` / `pg_dump` - PostgreSQL client tools
+### Install Dependencies
+
+```bash
+# goose - Database migrations
+go install github.com/pressly/goose/v3/cmd/goose@latest
+
+# dbml - Schema documentation generator (optional, for dbml command)
+go install github.com/tmwinc/dbml@latest
+```
+
+### System Requirements
+
+- `psql` / `pg_dump` - PostgreSQL client tools (install via `brew install postgresql` or your package manager)
 - `git` - For the check command (CI validation)
 
 ## Quick Start
@@ -253,6 +264,26 @@ The `db setup` command performs:
 6. Applies seed data from `seed/<name>/` (if `--seed-name` provided)
 
 The database name, user, and password are all extracted from the DATABASE_URL.
+
+### dbml
+
+Generate DBML (Database Markup Language) documentation from your database schema.
+
+```bash
+# Generate DBML to stdout
+seedup dbml
+
+# Generate to file
+seedup dbml -o schema.dbml
+
+# Include all schemas (not just public)
+seedup dbml --all-schemas -o schema.dbml
+
+# Exclude specific tables
+seedup dbml --exclude-tables goose_db_version
+```
+
+DBML files can be used with [dbdiagram.io](https://dbdiagram.io) to visualize your database schema.
 
 ## Writing Migrations
 

@@ -40,6 +40,7 @@ Configuration is done via environment variables or CLI flags:
 	rootCmd.AddCommand(newFlattenCmd())
 	rootCmd.AddCommand(newCheckCmd())
 	rootCmd.AddCommand(newDBCmd())
+	rootCmd.AddCommand(newDBMLCmd())
 
 	return rootCmd
 }
