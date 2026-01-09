@@ -39,6 +39,7 @@ Configuration is done via environment variables or CLI flags:
 	rootCmd.AddCommand(newSeedCmd())
 	rootCmd.AddCommand(newFlattenCmd())
 	rootCmd.AddCommand(newCheckCmd())
+	rootCmd.AddCommand(newDBCmd())
 
 	return rootCmd
 }
