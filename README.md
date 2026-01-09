@@ -42,10 +42,11 @@ Set up your project with the following structure:
 your-project/
 ├── migrations/           # Migration files go here
 │   └── 20240101120000_initial.sql
-├── seed/                 # Seed data CSV files
-│   ├── public.users.csv
-│   └── public.accounts.csv
-├── seed.sql              # SQL to select seed data from production
+├── seed/                 # Seed data root directory
+│   ├── dev.sql           # SQL to select seed data for "dev" seed set
+│   └── dev/              # Seed data CSV files for "dev" seed set
+│       ├── public.users.csv
+│       └── public.accounts.csv
 ├── Makefile              # Optional: wrap seedup commands
 └── ...
 ```
@@ -61,7 +62,6 @@ export DATABASE_URL="postgres://user:pass@localhost/mydb"
 # Optional (with defaults)
 export MIGRATIONS_DIR="./migrations"    # default: ./migrations
 export SEED_DIR="./seed"                # default: ./seed
-export SEED_QUERY_FILE="./seed.sql"     # default: ./seed.sql
 ```
 
 ### 3. Makefile Integration
@@ -85,20 +85,20 @@ migrate-create:
 	@read -p "Migration name: " name; \
 	seedup migrate create $$name
 
-# Seed data
+# Seed data (use "dev" as the seed set name)
 .PHONY: seed seed-create
 
 seed:
-	seedup seed apply
+	seedup seed apply dev
 
 seed-create:
-	seedup seed create -d "$$PROD_DATABASE_URL"
+	seedup seed create dev -d "$$PROD_DATABASE_URL"
 
 # Database setup
 .PHONY: db-setup db-drop
 
 db-setup:
-	seedup db setup --force
+	seedup db setup --force --seed-name dev
 
 db-drop:
 	seedup db drop --force
@@ -164,29 +164,35 @@ seedup migrate create add_users_table
 Apply seed data to your local database. This is useful for setting up development environments.
 
 ```bash
-seedup seed apply
+# Apply the "dev" seed set
+seedup seed apply dev
+
+# Apply to a specific database
+seedup seed apply dev -d "$DATABASE_URL"
 ```
 
 The apply process:
 1. Runs the initial migration (first migration file)
-2. Loads all CSV files from the seed directory
+2. Loads all CSV files from `seed/<name>/`
 3. Runs remaining migrations
 
 ### seed create
 
-Create seed data from a database (typically production). This dumps schema and data.
+Create seed data from a database (typically production). This extracts data based on your query file.
 
 ```bash
-# Create seed from production
-seedup seed create -d "$PROD_DATABASE_URL"
+# Create "dev" seed set from production
+seedup seed create dev -d "$PROD_DATABASE_URL"
 
 # Dry run (preview without modifying files)
-seedup seed create -d "$PROD_DATABASE_URL" --dry-run
+seedup seed create dev -d "$PROD_DATABASE_URL" --dry-run
 ```
 
 The create process:
-1. Flattens all migrations into a single initial migration
-2. Exports data to CSV files based on your seed query file
+1. Reads the query file at `seed/<name>.sql`
+2. Executes queries against the source database
+3. Exports results to CSV files in `seed/<name>/`
+4. Flattens all migrations into a single initial migration
 
 ### flatten
 
@@ -220,10 +226,10 @@ Database lifecycle management commands for setting up and tearing down databases
 
 ```bash
 # Full setup: drop + create user + create db + permissions + migrate + seed
-seedup db setup
+seedup db setup --seed-name dev
 
 # Skip confirmation prompt (for CI/automation)
-seedup db setup --force
+seedup db setup --force --seed-name dev
 
 # Skip seeding (only create db and run migrations)
 seedup db setup --skip-seed
@@ -239,12 +245,12 @@ seedup db create
 ```
 
 The `db setup` command performs:
-1. Drops the database if it exists
-2. Creates the database user (extracted from DATABASE_URL) if it doesn't exist
-3. Creates the database (extracted from DATABASE_URL)
+1. Creates the database user (extracted from DATABASE_URL) if it doesn't exist
+2. Drops the database if it exists
+3. Creates the database
 4. Sets up permissions (grants all privileges, sets owner)
 5. Runs all migrations
-6. Applies seed data (unless `--skip-seed`)
+6. Applies seed data from `seed/<name>/` (if `--seed-name` provided)
 
 The database name, user, and password are all extracted from the DATABASE_URL.
 
@@ -271,11 +277,15 @@ DROP TABLE users;
 
 ## Writing Seed Query Files
 
-The seed query file (`seed.sql`) defines which data to include in your seed. It populates temporary tables that get exported to CSV.
+The seed query file (e.g., `seed/dev.sql`) defines which data to extract from your source database. When you run `seedup seed create dev`, it:
 
-Each table in your database has a corresponding temp table with the naming convention `pg_temp."seed.<schema>.<table>"`.
+1. Creates temporary tables for each table in the database
+2. Runs your query file to populate those temp tables
+3. Exports the temp tables to CSV files in `seed/dev/`
 
-Example `seed.sql`:
+The query file should contain INSERT statements that select data FROM your real tables INTO the corresponding temp tables. Each temp table is named `pg_temp."seed.<schema>.<table>"`.
+
+Example `seed/dev.sql`:
 
 ```sql
 -- Select recent users for development
@@ -315,8 +325,7 @@ LIMIT 1000;
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection URL | required |
 | `MIGRATIONS_DIR` | Path to migrations directory | `./migrations` |
-| `SEED_DIR` | Path to seed data directory | `./seed` |
-| `SEED_QUERY_FILE` | SQL file defining seed queries | `./seed.sql` |
+| `SEED_DIR` | Path to seed data root directory | `./seed` |
 
 ## Examples
 
@@ -331,7 +340,7 @@ cd yourproject
 export DATABASE_URL="postgres://user:pass@localhost/myproject_dev"
 
 # Full database setup (creates db, user, runs migrations, seeds)
-seedup db setup
+seedup db setup --seed-name dev
 
 # Your database is now ready for development!
 ```
@@ -342,8 +351,8 @@ seedup db setup
 # Connect to production (read-only)
 export PROD_DATABASE_URL="postgres://readonly:pass@prod-host/myproject"
 
-# Create seed from production
-seedup seed create -d "$PROD_DATABASE_URL"
+# Create "dev" seed set from production
+seedup seed create dev -d "$PROD_DATABASE_URL"
 
 # Review and commit the changes
 git add migrations/ seed/

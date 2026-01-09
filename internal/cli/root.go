@@ -70,11 +70,3 @@ func getSeedDir() string {
 	}
 	return "./seed"
 }
-
-// getSeedQueryFile returns the seed query file from flag or environment
-func getSeedQueryFile() string {
-	if file := os.Getenv("SEED_QUERY_FILE"); file != "" {
-		return file
-	}
-	return "./seed.sql"
-}

@@ -104,12 +104,16 @@ func newDBCreateCmd() *cobra.Command {
 func newDBSetupCmd() *cobra.Command {
 	var force bool
 	var skipSeed bool
+	var seedName string
 
 	cmd := &cobra.Command{
 		Use:   "setup",
 		Short: "Full database setup",
 		Long: `Full database setup: drop (if exists), create database, create user,
 set permissions, run migrations, and apply seeds.
+
+Use --seed-name to specify which seed set to apply (e.g., "dev", "staging").
+If not provided and seeds exist, they will be skipped.
 
 This is a destructive operation that will drop and recreate the database.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -138,6 +142,7 @@ This is a destructive operation that will drop and recreate the database.`,
 				AdminURL:      adminURL,
 				MigrationsDir: getMigrationsDir(),
 				SeedDir:       getSeedDir(),
+				SeedName:      seedName,
 				SkipSeed:      skipSeed,
 			}
 
@@ -152,6 +157,7 @@ This is a destructive operation that will drop and recreate the database.`,
 
 	cmd.Flags().BoolVarP(&force, "force", "f", false, "Skip confirmation prompt")
 	cmd.Flags().BoolVar(&skipSeed, "skip-seed", false, "Skip applying seed data")
+	cmd.Flags().StringVar(&seedName, "seed-name", "", "Name of seed set to apply (e.g., 'dev')")
 	return cmd
 }
 

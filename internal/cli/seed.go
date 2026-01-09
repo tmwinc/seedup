@@ -3,16 +3,15 @@ package cli
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 
+	"github.com/spf13/cobra"
 	"github.com/tmwinc/seedup/pkg/executor"
 	"github.com/tmwinc/seedup/pkg/seed"
-	"github.com/spf13/cobra"
 )
 
 var (
-	seedDir       string
-	seedQueryFile string
-	dryRun        bool
+	dryRun bool
 )
 
 func newSeedCmd() *cobra.Command {
@@ -30,11 +29,19 @@ func newSeedCmd() *cobra.Command {
 
 func newSeedApplyCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "apply",
+		Use:   "apply <name>",
 		Short: "Apply seed data to the database",
 		Long: `Apply seed data to the database.
-This runs the initial migration, loads CSV files, then runs remaining migrations.`,
+
+The <name> argument specifies which seed set to apply (e.g., "dev", "staging").
+This loads CSV files from seed/<name>/, runs migrations, and imports the data.
+
+Example:
+  seedup seed apply dev -d postgres://user:pass@localhost/mydb`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			name := args[0]
+
 			dbURL := getDatabaseURL()
 			if dbURL == "" {
 				return fmt.Errorf("database URL required (use -d flag or DATABASE_URL env)")
@@ -43,31 +50,36 @@ This runs the initial migration, loads CSV files, then runs remaining migrations
 			exec := executor.New(executor.WithVerbose(verbose))
 			s := seed.New(exec)
 
-			dir := seedDir
-			if dir == "" {
-				dir = getSeedDir()
-			}
+			// Seed data directory: ./seed/<name>/
+			dir := filepath.Join(getSeedDir(), name)
 
 			return s.Apply(context.Background(), dbURL, getMigrationsDir(), dir)
 		},
 	}
-
-	cmd.Flags().StringVar(&seedDir, "seed-dir", "", "Seed data directory (or SEED_DIR env)")
 
 	return cmd
 }
 
 func newSeedCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create",
+		Use:   "create <name>",
 		Short: "Create seed data from a database",
 		Long: `Create seed data from a database.
-This dumps the schema, flattens migrations, and exports seed data to CSV files.
+
+The <name> argument specifies the seed set name (e.g., "dev", "staging").
+This reads the query file at seed/<name>.sql, executes it against the database,
+and exports the results to CSV files in seed/<name>/.
 
 The seed query file should contain SQL that populates temporary tables with the
 data you want to include in the seed. Each table in the database has a corresponding
-temp table prefixed with "seed." that you should INSERT INTO.`,
+temp table named pg_temp."seed.<schema>.<table>" that you should INSERT INTO.
+
+Example:
+  seedup seed create dev -d postgres://user:pass@localhost/production_db`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			name := args[0]
+
 			dbURL := getDatabaseURL()
 			if dbURL == "" {
 				return fmt.Errorf("database URL required (use -d flag or DATABASE_URL env)")
@@ -76,15 +88,11 @@ temp table prefixed with "seed." that you should INSERT INTO.`,
 			exec := executor.New(executor.WithVerbose(verbose))
 			s := seed.New(exec)
 
-			dir := seedDir
-			if dir == "" {
-				dir = getSeedDir()
-			}
+			// Seed data directory: ./seed/<name>/
+			dir := filepath.Join(getSeedDir(), name)
 
-			queryFile := seedQueryFile
-			if queryFile == "" {
-				queryFile = getSeedQueryFile()
-			}
+			// Seed query file: ./seed/<name>.sql
+			queryFile := filepath.Join(getSeedDir(), name+".sql")
 
 			opts := seed.CreateOptions{
 				DryRun: dryRun,
@@ -94,8 +102,6 @@ temp table prefixed with "seed." that you should INSERT INTO.`,
 		},
 	}
 
-	cmd.Flags().StringVar(&seedDir, "seed-dir", "", "Seed data output directory (or SEED_DIR env)")
-	cmd.Flags().StringVar(&seedQueryFile, "seed-query-file", "", "SQL file to select seed data (or SEED_QUERY_FILE env)")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Preview without modifying files")
 
 	return cmd

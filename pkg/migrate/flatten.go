@@ -31,7 +31,8 @@ func (f *Flattener) Flatten(ctx context.Context, dbURL, migrationsDir string) er
 	}
 
 	if len(versions) == 0 {
-		return fmt.Errorf("no applied migrations found")
+		fmt.Println("No applied migrations found, skipping flatten")
+		return nil
 	}
 
 	// Get the latest version for the new initial migration
@@ -64,6 +65,21 @@ func (f *Flattener) Flatten(ctx context.Context, dbURL, migrationsDir string) er
 }
 
 func (f *Flattener) getAppliedVersions(ctx context.Context, dbURL string) ([]string, error) {
+	// First check if the goose_db_version table exists
+	checkQuery := `SELECT EXISTS (
+		SELECT FROM information_schema.tables
+		WHERE table_schema = 'public'
+		AND table_name = 'goose_db_version'
+	)`
+	exists, err := f.exec.RunSQL(ctx, dbURL, checkQuery)
+	if err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(exists) != "t" {
+		// Table doesn't exist, no migrations have been run
+		return nil, nil
+	}
+
 	output, err := f.exec.RunSQL(ctx, dbURL,
 		"SELECT version_id FROM goose_db_version WHERE is_applied ORDER BY version_id")
 	if err != nil {

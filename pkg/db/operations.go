@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -152,18 +154,35 @@ func (m *Manager) Setup(ctx context.Context, opts SetupOptions) error {
 		return fmt.Errorf("setting up permissions: %w", err)
 	}
 
-	// 5. Run migrations
-	fmt.Println("Running migrations...")
-	if err := m.migrator.Up(ctx, opts.DatabaseURL, opts.MigrationsDir); err != nil {
-		return fmt.Errorf("running migrations: %w", err)
+	// 5. Run migrations (if any exist)
+	migrations, _ := filepath.Glob(filepath.Join(opts.MigrationsDir, "*.sql"))
+	if len(migrations) > 0 {
+		fmt.Println("Running migrations...")
+		if err := m.migrator.Up(ctx, opts.DatabaseURL, opts.MigrationsDir); err != nil {
+			return fmt.Errorf("running migrations: %w", err)
+		}
+	} else {
+		fmt.Println("No migration files found, skipping migrations")
 	}
 
-	// 6. Apply seeds (optional)
-	if !opts.SkipSeed {
-		fmt.Println("Applying seeds...")
-		if err := m.seeder.Apply(ctx, opts.DatabaseURL, opts.MigrationsDir, opts.SeedDir); err != nil {
-			return fmt.Errorf("applying seeds: %w", err)
+	// 6. Apply seeds (optional, requires --seed-name)
+	if !opts.SkipSeed && opts.SeedName != "" {
+		seedDir := filepath.Join(opts.SeedDir, opts.SeedName)
+		if _, err := os.Stat(seedDir); err == nil {
+			csvFiles, _ := filepath.Glob(filepath.Join(seedDir, "*.csv"))
+			if len(csvFiles) > 0 {
+				fmt.Printf("Applying seeds from '%s'...\n", seedDir)
+				if err := m.seeder.Apply(ctx, opts.DatabaseURL, opts.MigrationsDir, seedDir); err != nil {
+					return fmt.Errorf("applying seeds: %w", err)
+				}
+			} else {
+				fmt.Printf("No seed CSV files found in '%s', skipping seeds\n", seedDir)
+			}
+		} else {
+			fmt.Printf("Seed directory '%s' not found, skipping seeds\n", seedDir)
 		}
+	} else if !opts.SkipSeed && opts.SeedName == "" {
+		fmt.Println("No --seed-name provided, skipping seeds")
 	}
 
 	return nil

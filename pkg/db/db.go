@@ -27,6 +27,7 @@ type SetupOptions struct {
 	DatabaseURL   string
 	AdminURL      string // Optional: URL for admin operations (defaults to postgres@host/postgres)
 	MigrationsDir string
-	SeedDir       string
+	SeedDir       string // Root seed directory (e.g., "./seed")
+	SeedName      string // Name of seed set to apply (e.g., "dev" -> ./seed/dev/)
 	SkipSeed      bool
 }

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go build:*)",
+      "Bash(./seedup db setup:*)",
+      "Bash(DATABASE_URL=\"postgres://amity_user:amity_password@localhost/amity\" ./seedup db setup:*)",
+      "Bash(psql:*)",
+      "Bash(DATABASE_URL=\"postgres://amity_user:amity_password@localhost/amity\" ./seedup:*)",
+      "Bash(DATABASE_URL=\"postgres://amity_user:amity_password@localhost/amity\" ./seedup seed create:*)",
+      "Bash(./seedup seed create:*)",
+      "Bash(./seedup seed apply:*)",
+      "Bash(DATABASE_URL=\"postgres://amity_user:amity_password@localhost/amity_development\" ./seedup db setup:*)"
+    ]
+  }
+}

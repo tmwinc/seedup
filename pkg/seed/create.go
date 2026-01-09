@@ -124,11 +124,16 @@ func (s *Seeder) extractSeedData(ctx context.Context, dbURL string, tables []tab
 	if queryFile != "" {
 		queryContent, err := os.ReadFile(queryFile)
 		if err != nil {
-			return fmt.Errorf("reading query file: %w", err)
+			if os.IsNotExist(err) {
+				fmt.Printf("Warning: seed query file '%s' not found, proceeding without custom queries\n", queryFile)
+			} else {
+				return fmt.Errorf("reading query file: %w", err)
+			}
+		} else {
+			script.WriteString("\n")
+			script.Write(queryContent)
+			script.WriteString("\n")
 		}
-		script.WriteString("\n")
-		script.Write(queryContent)
-		script.WriteString("\n")
 	}
 
 	// Export each temp table to CSV
