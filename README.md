@@ -94,6 +94,15 @@ seed:
 seed-create:
 	seedup seed create -d "$$PROD_DATABASE_URL"
 
+# Database setup
+.PHONY: db-setup db-drop
+
+db-setup:
+	seedup db setup --force
+
+db-drop:
+	seedup db drop --force
+
 # CI checks
 .PHONY: check-migrations
 
@@ -205,6 +214,38 @@ To fix:
   $ git mv migrations/{20240101120000,$(date -u +%Y%m%d%H%M%S)}_add_users.sql
 ```
 
+### db
+
+Database lifecycle management commands for setting up and tearing down databases.
+
+```bash
+# Full setup: drop + create user + create db + permissions + migrate + seed
+seedup db setup
+
+# Skip confirmation prompt (for CI/automation)
+seedup db setup --force
+
+# Skip seeding (only create db and run migrations)
+seedup db setup --skip-seed
+
+# Drop the database
+seedup db drop
+
+# Drop without confirmation
+seedup db drop --force
+
+# Create the database (if it doesn't exist)
+seedup db create
+```
+
+The `db setup` command performs:
+1. Drops the database if it exists
+2. Creates the database user if it doesn't exist
+3. Creates the database
+4. Sets up permissions (grants all privileges, sets owner)
+5. Runs all migrations
+6. Applies seed data (unless `--skip-seed`)
+
 ## Writing Migrations
 
 Migration files use the standard goose format:
@@ -284,14 +325,11 @@ LIMIT 1000;
 git clone https://github.com/yourorg/yourproject
 cd yourproject
 
-# Set up local database
-createdb myproject_dev
-
 # Configure environment
-export DATABASE_URL="postgres://localhost/myproject_dev"
+export DATABASE_URL="postgres://user:pass@localhost/myproject_dev"
 
-# Apply seed data (runs migrations + loads seed data)
-seedup seed apply
+# Full database setup (creates db, user, runs migrations, seeds)
+seedup db setup
 
 # Your database is now ready for development!
 ```
