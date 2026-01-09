@@ -240,11 +240,13 @@ seedup db create
 
 The `db setup` command performs:
 1. Drops the database if it exists
-2. Creates the database user if it doesn't exist
-3. Creates the database
+2. Creates the database user (extracted from DATABASE_URL) if it doesn't exist
+3. Creates the database (extracted from DATABASE_URL)
 4. Sets up permissions (grants all privileges, sets owner)
 5. Runs all migrations
 6. Applies seed data (unless `--skip-seed`)
+
+The database name, user, and password are all extracted from the DATABASE_URL.
 
 ## Writing Migrations
 

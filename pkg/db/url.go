@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"net/url"
+	"os/user"
 	"strings"
 )
 
@@ -51,14 +52,16 @@ func ParseDatabaseURL(rawURL string) (*DBConfig, error) {
 	}, nil
 }
 
-// AdminURL returns a URL pointing to the 'postgres' database for admin operations
+// AdminURL returns a URL pointing to the 'postgres' database using the current system user.
+// This is used for admin operations like CREATE DATABASE, CREATE USER, etc.
+// On most local setups (macOS/Homebrew), the superuser is the system username.
 func (c *DBConfig) AdminURL() string {
-	if c.Password != "" {
-		return fmt.Sprintf("postgres://%s:%s@%s:%s/postgres?sslmode=%s",
-			c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.SSLMode)
+	adminUser := "postgres"
+	if u, err := user.Current(); err == nil && u.Username != "" {
+		adminUser = u.Username
 	}
 	return fmt.Sprintf("postgres://%s@%s:%s/postgres?sslmode=%s",
-		c.User, c.Host, c.Port, c.SSLMode)
+		adminUser, c.Host, c.Port, c.SSLMode)
 }
 
 // URLWithDatabase returns a URL with a different database name

@@ -12,12 +12,17 @@ import (
 	"github.com/tmwinc/seedup/pkg/executor"
 )
 
+var adminURL string
+
 func newDBCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "db",
 		Short: "Database setup and management commands",
 		Long:  "Commands for managing database lifecycle: create, drop, and full setup",
 	}
+
+	cmd.PersistentFlags().StringVar(&adminURL, "admin-url", "",
+		"Admin database URL for superuser operations (default: current system user)")
 
 	cmd.AddCommand(newDBDropCmd())
 	cmd.AddCommand(newDBCreateCmd())
@@ -54,7 +59,7 @@ func newDBDropCmd() *cobra.Command {
 			exec := executor.New(executor.WithVerbose(verbose))
 			m := db.New(exec)
 
-			if err := m.Drop(context.Background(), dbURL); err != nil {
+			if err := m.Drop(context.Background(), dbURL, adminURL); err != nil {
 				return err
 			}
 
@@ -86,7 +91,7 @@ func newDBCreateCmd() *cobra.Command {
 			exec := executor.New(executor.WithVerbose(verbose))
 			m := db.New(exec)
 
-			if err := m.Create(context.Background(), dbURL); err != nil {
+			if err := m.Create(context.Background(), dbURL, adminURL); err != nil {
 				return err
 			}
 
@@ -130,6 +135,7 @@ This is a destructive operation that will drop and recreate the database.`,
 
 			opts := db.SetupOptions{
 				DatabaseURL:   dbURL,
+				AdminURL:      adminURL,
 				MigrationsDir: getMigrationsDir(),
 				SeedDir:       getSeedDir(),
 				SkipSeed:      skipSeed,

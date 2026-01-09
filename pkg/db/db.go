@@ -25,6 +25,7 @@ func New(exec executor.Executor) *Manager {
 // SetupOptions configures the Setup operation
 type SetupOptions struct {
 	DatabaseURL   string
+	AdminURL      string // Optional: URL for admin operations (defaults to postgres@host/postgres)
 	MigrationsDir string
 	SeedDir       string
 	SkipSeed      bool
